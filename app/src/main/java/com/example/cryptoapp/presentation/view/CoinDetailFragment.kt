@@ -1,25 +1,39 @@
-package com.example.cryptoapp.presentation
+package com.example.cryptoapp.presentation.view
 
-import android.content.Context
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.cryptoapp.R
-import com.example.cryptoapp.databinding.ActivityCoinDetailBinding
 import com.example.cryptoapp.databinding.FragmentCoinDetailBinding
+import com.example.cryptoapp.presentation.CoinApp
+import com.example.cryptoapp.presentation.viewmodel.CoinViewModel
+import com.example.cryptoapp.presentation.viewmodel.ViewModelFactory
 import com.squareup.picasso.Picasso
+import javax.inject.Inject
 
 class CoinDetailFragment : Fragment() {
 
-    private lateinit var viewModel: CoinViewModel
+    @Inject
+    lateinit var viewModelFactory: ViewModelFactory
+
+    private val component by lazy {
+        (requireActivity().application as CoinApp).component
+    }
+
+    private val viewModel: CoinViewModel by lazy {
+        ViewModelProvider(this, viewModelFactory)[CoinViewModel::class.java]
+    }
+
     private var _binding: FragmentCoinDetailBinding? = null
     private val binding: FragmentCoinDetailBinding
         get() = _binding ?: throw RuntimeException("FragmentCoinDetailBinding is null")
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        component.inject(this)
+        super.onCreate(savedInstanceState)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,7 +52,6 @@ class CoinDetailFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val fromSymbol = getSymbol()
-        viewModel = ViewModelProvider(this)[CoinViewModel::class.java]
         with(binding) {
             viewModel.getDetailInfo(fromSymbol).observe(viewLifecycleOwner) {
                 tvPrice.text = it.price

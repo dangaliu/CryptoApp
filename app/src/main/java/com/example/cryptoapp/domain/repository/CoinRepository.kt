@@ -1,6 +1,7 @@
-package com.example.cryptoapp.domain
+package com.example.cryptoapp.domain.repository
 
 import androidx.lifecycle.LiveData
+import com.example.cryptoapp.domain.model.CoinInfo
 
 
 interface CoinRepository {
@@ -9,5 +10,5 @@ interface CoinRepository {
 
     fun getCoinInfo(fromSymbol: String): LiveData<CoinInfo>
 
-    suspend fun loadData()
+    fun loadData()
 }

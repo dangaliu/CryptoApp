@@ -3,20 +3,20 @@ package com.example.cryptoapp.data.repository
 import android.app.Application
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.Transformations
-import com.example.cryptoapp.data.database.AppDatabase
+import androidx.work.ExistingWorkPolicy
+import androidx.work.WorkManager
+import com.example.cryptoapp.data.database.CoinDao
 import com.example.cryptoapp.data.mappers.CoinMapper
-import com.example.cryptoapp.data.network.ApiFactory
-import com.example.cryptoapp.domain.CoinInfo
-import com.example.cryptoapp.domain.CoinRepository
-import kotlinx.coroutines.delay
+import com.example.cryptoapp.domain.model.CoinInfo
+import com.example.cryptoapp.domain.repository.CoinRepository
+import com.example.cryptoapp.workers.DataRefreshWorker
+import javax.inject.Inject
 
-class CoinRepositoryImpl(
-    private val application: Application
+class CoinRepositoryImpl @Inject constructor(
+    private val application: Application,
+    private val coinInfoDao: CoinDao,
+    private val coinMapper: CoinMapper
 ) : CoinRepository {
-
-    private val coinInfoDao = AppDatabase.getInstance(application).coinPriceInfoDao()
-    private val coinMapper = CoinMapper()
-    private val apiService = ApiFactory.apiService
 
     override fun getCoinInfoList(): LiveData<List<CoinInfo>> {
         return Transformations.map(coinInfoDao.getCoinInfoList()) { dbList ->
@@ -30,19 +30,12 @@ class CoinRepositoryImpl(
         }
     }
 
-    override suspend fun loadData() {
-        try {
-            while (true) {
-                val topCoins = apiService.getTopCoinsInfo(limit = 50)
-                val fSyms = coinMapper.mapNamesListToString(topCoins)
-                val jsonContainer = apiService.getFullPriceList(fSyms = fSyms)
-                val coinInfoDtoList = coinMapper.mapJsonContainerToListCoinInfo(jsonContainer)
-                val dbModelList = coinInfoDtoList.map { coinMapper.mapDtoModelToDbModel(it) }
-                coinInfoDao.insertPriceList(dbModelList)
-                delay(10000)
-            }
-        } catch (e: Exception) {
-
-        }
+    override fun loadData() {
+        val workManager = WorkManager.getInstance(application)
+        workManager.enqueueUniqueWork(
+            DataRefreshWorker.NAME,
+            ExistingWorkPolicy.REPLACE,
+            DataRefreshWorker.makeRequest()
+        )
     }
 }
