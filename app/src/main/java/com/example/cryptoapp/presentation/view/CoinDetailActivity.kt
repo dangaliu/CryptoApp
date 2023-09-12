@@ -11,7 +11,6 @@ import com.example.cryptoapp.presentation.viewmodel.CoinViewModel
 
 class CoinDetailActivity : AppCompatActivity() {
 
-    private lateinit var viewModel: CoinViewModel
     private val binding: ActivityCoinDetailBinding by lazy {
         ActivityCoinDetailBinding.inflate(layoutInflater)
     }
@@ -24,7 +23,6 @@ class CoinDetailActivity : AppCompatActivity() {
             return
         }
         val fromSymbol = intent.getStringExtra(EXTRA_FROM_SYMBOL)
-        viewModel = ViewModelProvider(this)[CoinViewModel::class.java]
         if (fromSymbol != null) {
             supportFragmentManager
                 .beginTransaction()
