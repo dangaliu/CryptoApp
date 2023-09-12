@@ -9,7 +9,7 @@ import dagger.Component
 import javax.inject.Singleton
 
 @Singleton
-@Component(modules = [DataModule::class, ViewModelModule::class])
+@Component(modules = [DataModule::class, ViewModelModule::class, WorkerModule::class])
 interface ApplicationComponent {
 
     fun inject(activity: CoinPriceListActivity)
